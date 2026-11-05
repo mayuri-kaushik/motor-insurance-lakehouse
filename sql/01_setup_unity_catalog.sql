@@ -21,3 +21,5 @@ CREATE VOLUME IF NOT EXISTS ops.schemas        COMMENT 'Auto Loader schema locat
 -- 4. Check
 SHOW SCHEMAS IN dev_insurance;
 SHOW VOLUMES IN dev_insurance.landing;
+
+
