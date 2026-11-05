@@ -1,1 +1,1 @@
-
+Expected: editing the file on GitHub would update Databricks. Happened: no change. Learned: a Git folder is a clone. You pull changes in and push changes out; nothing syncs automatically. And code stored in Git does nothing until it’s executed
