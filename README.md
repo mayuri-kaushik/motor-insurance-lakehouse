@@ -1,5 +1,14 @@
 # motor-insurance-lakehouse
-a UK motor insurance lakehouse built on Azure and Databricks
+GOal - A UK motor insurance lakehouse built on Azure and Databricks using medallion architecture
+
+Source table - Policy, Policy Holder, Product , Broker and claims and Bourdeaux
+
+Dim Table - Dim_Policy, dim_Policy Holder, dim_Product, dim_Broker and dim_date
+
+Fact Table - 
+Fact_premium_transaction - Grain -One row per Bourdeaux line  
+Fact_Policy_month - Periodic snapshot - Grain - One row per policy per month 
+Fact_Claim - Accumulated snapshot - Grain - One row per claim 
 
 Raw data count - 
 {
