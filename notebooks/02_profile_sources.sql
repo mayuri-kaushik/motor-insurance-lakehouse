@@ -1,14 +1,14 @@
 -- Premium bordereaux: how many lines, how many distinct, how much premium?
-SELECT count(*)                          AS lines,
-       count(DISTINCT bordereau_line_id) AS distinct_lines,
-       sum(written_premium)              AS premium_incl_dupes
-FROM read_files('/Volumes/dev_insurance/landing/raw/bordereaux/premium/',
-                format => 'csv', header => true);
+select count(*) as lines, 
+        count(distinct bordereau_line_id) as distinct_lines,
+-- sum(CAST(written_premium AS DECIMAL(18,2))) AS premium_incl_dupes
 
--- Which lines are duplicated?
+        sum(cast(written_premium as decimal(18,2))) as premium_incl_dupes 
+from read_files('/Volumes/dev_insurance/landing/raw/bordereaux/premium/', format => 'csv', header => true);
+
+--Which lines are duplicated?
 SELECT bordereau_line_id, count(*) AS n
-FROM read_files('/Volumes/dev_insurance/landing/raw/bordereaux/premium/',
-                format => 'csv', header => true)
+from read_files('/Volumes/dev_insurance/landing/raw/bordereaux/premium/',format => 'csv', header => true)
 GROUP BY bordereau_line_id HAVING count(*) > 1
 ORDER BY n DESC LIMIT 20;
 
