@@ -28,3 +28,16 @@ why did it fail first, then work? Because of schema drift, a new column "Payment
 - Delta enforces schema by default (rejects new columns). mergeSchema=true allows evolution on the table; addNewColumns evolves the stream's schema. Need both.
 
 Expected: Bronze = 31,924 rows (source of truth). Happened: 30,775. A file-by-file reconciliation showed premium_bordereau_20260116.csv had 1,149 raw rows and 0 in Bronze. Day 16 was never landed (off-by-one in range()). Every run was green. Learned: green ≠ complete. Reconcile at file level, and add a missing-file completeness check.
+
+
+Why are Bronze columns strings? Where does typing happen? => Bronze is raw layer, no bad records. everything can be appended and replayable. Typping happen in silver layer where if datatype does not match, store in quartine table .
+
+What happened when you deleted the checkpoint, and how do you protect against it in production?
+checkpoints on restricted storage: only the job’s service principal can write or delete them, not people. never share, move or casually delete a checkpoint; a reset is a deliberate, reviewed action. idempotent Silver (MERGE on the business key) as a safety net, so a replay can’t create duplicates downstream. row-count reconciliation to catch a doubling immediately
+
+How would you detect a late-arriving file, and how would you detect a missing one (like your day 16)?
+Compare the business date with the ingest date.
+expect one file per source per business day; if it hasn’t arrived by the cut-off time, alert
+
+Why do duplicates stay in Bronze
+Bronze is a faithful record of exactly what the source sent. Duplicates are evidence: if a broker sends a line twice, I want to be able to prove it. Bronze also has to be replayable. Dedup belongs in Silver, where the business key is known
