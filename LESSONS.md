@@ -21,3 +21,10 @@ Expected: all six Bronze streams to start. Happened: claim_events failed with CF
 
 
 why did it fail first, then work? Because of schema drift, a new column "Payment method" is added, with schemaEvolution is addNewColumns mode, autoloader updates the schema in schema location , then stops the streams so new schema is picked up on restart. In production, job's retry handles this automatically. Day-1 to Day-9 , payment method is blank. for those days, payment method was not there earlier. 
+
+- Re-run with no new files: 0 rows. The checkpoint already recorded those files -> idempotent, exactly-once.
+- _rescued_data = data that doesn't fit the schema (rescue-mode new columns, type mismatches, malformed fields). With addNewColumns + all-string Bronze, mine has 0 rows: the new column became a real column.
+- One checkpoint per stream: it holds that stream's files, offsets and commits. Sharing would corrupt progress; separate checkpoints let me replay one source alone.
+- Delta enforces schema by default (rejects new columns). mergeSchema=true allows evolution on the table; addNewColumns evolves the stream's schema. Need both.
+
+Expected: Bronze = 31,924 rows (source of truth). Happened: 30,775. A file-by-file reconciliation showed premium_bordereau_20260116.csv had 1,149 raw rows and 0 in Bronze. Day 16 was never landed (off-by-one in range()). Every run was green. Learned: green ≠ complete. Reconcile at file level, and add a missing-file completeness check.
