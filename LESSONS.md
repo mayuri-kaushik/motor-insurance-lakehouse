@@ -14,3 +14,10 @@ addNewColumns (the default when you don’t supply a schema)	The schema is updat
 rescue	The schema never changes; the new column’s values go into _rescued_data (a column, not a “rescue data model”)
 failOnNewColumns	The stream fails and the schema is not updated; someone must change the schema or the setup manually
 none	The schema doesn’t change, the stream doesn’t fail, and the new column is ignored: the data is silently dropped unless a rescued data column is set
+
+
+
+Expected: all six Bronze streams to start. Happened: claim_events failed with CF_EMPTY_DIR_FOR_SCHEMA_INFERENCE. Day 1–2 claim files were 0 bytes, because no claims had been reported yet. Learned: Auto Loader needs data (or an explicit schema) to infer a schema the first time. I added a guard that skips a source until it has data. Real feeds send empty files, so the pipeline has to handle them.
+
+
+why did it fail first, then work? Because of schema drift, a new column "Payment method" is added, with schemaEvolution is addNewColumns mode, autoloader updates the schema in schema location , then stops the streams so new schema is picked up on restart. In production, job's retry handles this automatically. Day-1 to Day-9 , payment method is blank. for those days, payment method was not there earlier. 
