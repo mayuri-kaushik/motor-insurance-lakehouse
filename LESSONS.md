@@ -41,3 +41,28 @@ expect one file per source per business day; if it hasn’t arrived by the cut-o
 
 Why do duplicates stay in Bronze
 Bronze is a faithful record of exactly what the source sent. Duplicates are evidence: if a broker sends a line twice, I want to be able to prove it. Bronze also has to be replayable. Dedup belongs in Silver, where the business key is known
+
+
+foreachBatch -  what does it let you do inside a stream that a plain writeStream.toTable can't?
+it lets you treat each micro-batch of streaming data as a normal batch DataFrame and execute custom logic on it. But the write itself is relatively straightforward. It doesn't provide a callback where you can run arbitrary batch logic for every micro-batch.
+With foreachBatch, Spark gives you two things for every micro-batch:
+- batch_df → the DataFrame containing the current batch of records.
+- batch_id → the unique ID of that micro-batch within the streaming query.
+
+try_cast vs cast - what's the difference when the value is "abc"?
+
+try_cast - Instead of throwing an error for an invalid value, TRY_CAST returns NULL, allowing the pipeline to continue processing other records.
+
+CAST attempts to convert the value into the target type. Since "abc" is not a valid integer, the conversion fails and can cause your query to error
+
+Error vs warning severity - why have both? 
+If whole job flow can fail with bad record then severity should be error and stored in quarartine table. 
+
+If it's not going to cause any fail then add in silver tabler with warning. 
+
+Reject threshold - why fail the whole batch if, say, more than 1% of rows are bad?
+1% of the rows are bad for a batch processing. It means file is not good enough to process . batch fail with an alert is important to have on data quality side.
+
+Idempotent - what makes a Silver write safe to re-run?
+
+In case of job failure, with retrial, duplicate data should not be stored in silver layer. In silver layer, handle de-dup and merge query makes it idempotent. 
